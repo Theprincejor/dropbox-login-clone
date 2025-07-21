@@ -123,7 +123,7 @@ const DropboxLogin = () => {
                                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                     <input 
                                         type="email" name="email" id="email" required 
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition" 
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition text-black" 
                                         placeholder="Enter your email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
@@ -135,7 +135,7 @@ const DropboxLogin = () => {
                                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                                     <input 
                                         type="password" name="password" id="password" required 
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition" 
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition text-black" 
                                         placeholder="Enter your password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
@@ -169,7 +169,7 @@ const DropboxLogin = () => {
                     <div className="mt-6 text-center text-xs text-gray-500">
                         <p>This page is protected by reCAPTCHA and the Google <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a> and <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> apply.</p>
                     </div>
-                </div>
+                </div> 
             </main>
             
             <footer className="bg-gray-100 py-4 px-4 sm:px-6">
